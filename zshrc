@@ -2,7 +2,7 @@
 # export PATH=$HOME/bin:/usr/local/bin:$PATH
 
 # Path to your oh-my-zsh installation.
-export ZSH="/Users/fanlizhou/.oh-my-zsh"
+export ZSH="$HOME/.oh-my-zsh"
 
 # Set name of the theme to load --- if set to "random", it will
 # load a random theme each time oh-my-zsh is loaded, in which case,
@@ -63,11 +63,11 @@ ZSH_THEME="cookie"
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(
-	safe-paste
-	autoswitch_virtualenv
-	zsh-syntax-highlighting
-	zsh-autosuggestions
-	git
+    safe-paste
+    autoswitch_virtualenv
+    zsh-syntax-highlighting
+    zsh-autosuggestions
+    git
 )
 
 source $ZSH/oh-my-zsh.sh
@@ -78,6 +78,7 @@ source $ZSH/oh-my-zsh.sh
 
 # You may need to manually set your language environment
 export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
 
 # Preferred editor for local and remote sessions
 # if [[ -n $SSH_CONNECTION ]]; then
@@ -101,46 +102,121 @@ export LANG=en_US.UTF-8
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
-# common setting {
-	export PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig"
-#}
 
-# neovim {
-	export NVIM=/usr/local/nvim
-	export PATH=$PATH:$NVIM/bin
+# ===================== path add ====================================
+
+# local bin {
+    export PATH=$PATH:$HOME/.local/bin
 # }
 
-# alias {
-	alias vim="nvim"
-	alias vi="nvim"
+# golang {
+    export GOROOT=/usr/local/go
+    export PATH=$PATH:$GOROOT/bin
+    export GOPATH=$HOME/Env/go
+    export PATH=$PATH:$GOPATH/bin
 # }
 
-# zsh plugin setting {
-	# autojump config
-	[[ -s ~/.autojump/etc/profile.d/autojump.sh ]] && source ~/.autojump/etc/profile.d/autojump.sh
-	autoload -U compinit && compinit -u
-	
-	# cheat.sh config
-	fpath=(~/.zsh.d/ $fpath)
-
-	# zsh-autosuggest
-	bindkey '^O' autosuggest-accept	# ctrl+Y: accept the suggest
+# rust {
+    export PATH=$PATH:$HOME/.cargo/bin
 # }
 
-# language setting {
-	# golang {
-		export GOROOT=/usr/local/go
-		export PATH=$PATH:$GOROOT/bin
-		export GOPATH=$HOME/Env/go
-		export PATH=$PATH:$GOPATH/bin
-	# }
-	
-	# rust {
-		export PATH="$HOME/.cargo/bin:$PATH"
-	# }
-	
-	# python {
-		export PATH="/usr/local/opt/python@3.9/bin:$PATH"
-		export PATH="$HOME/.poetry/bin:$PATH"
-	# }
-#}
+# fd {
+    export PATH=$PATH:/usr/local/fd
+# }
+
+# ===================== lazyload assets ====================================
+my_lazyload_add_command() {
+    local command_name=$1
+    eval "${command_name}() { \
+        unfunction ${command_name}; \
+        _my_lazyload_command_${command_name}; \
+        ${command_name} \"\$@\"; \
+    }"
+}
+
+my_lazyload_add_comp() {
+    local command_name=$1
+    local comp_name="_my_lazyload__compfunc_${command_name}"
+    eval "${comp_name}() { \
+        compdef -d ${comp_name}; \
+        unfunction ${comp_name}; \
+        _my_lazyload_comp_${command_name}; \
+    }"
+    compdef $comp_name $command_name
+}
+
+# ======================== alias ========================================
+alias tp=telepresence
+alias cg=codegpt
+alias vim=nvim
+alias vi=nvim
+alias open=xdg-open
+alias fastapi=fastapi_template
+export NVIM=/usr/local/nvim
+export PATH=$NVIM/bin:$PATH
+
+# =================== plugin setting ====================================
+# autojump config
+eval "$(zoxide init --cmd j zsh)"
+
+# zsh-autosuggest
+bindkey '^O' autosuggest-accept # ctrl+Y: accept the suggest
+
+# =================== lazyload ====================================
+
+# kubectl
+_my_lazyload_comp_kubectl() {
+    source <(kubectl completion zsh)
+}
+my_lazyload_add_comp kubectl
+
+# helm
+_my_lazyload_comp_helm() {
+    source <(helm completion zsh)
+}
+my_lazyload_add_comp helm
+
+# pyenv
+_my_lazyload_command_pyenv(){
+    export PYENV_ROOT="$HOME/.pyenv"
+    [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
+    eval "$(pyenv init -)"
+    eval "$(pyenv virtualenv-init -)"
+    export PYTHON_BUILD_CACHE_PATH="$PYENV_ROOT/cache"
+}
+my_lazyload_add_command pyenv
+
+# java {
+
+    # sdkman
+    _my_lazyload_command_sdk(){
+        export SDKMAN_DIR="$HOME/.sdkman"
+        [[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
+    }
+    my_lazyload_add_command sdk
+
+
+    # java
+    _my_lazyload_command_java(){
+        export SDKMAN_DIR="$HOME/.sdkman"
+        [[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
+    }
+    my_lazyload_add_command java
+
+
+    # spring
+    _my_lazyload_command_spring(){
+        export SDKMAN_DIR="$HOME/.sdkman"
+        [[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
+    }
+    my_lazyload_add_command spring
+
+# }
+
+# fnm
+_my_lazyload_command_fnm(){
+    export PATH="$HOME/.local/share/fnm:$PATH"
+    eval "`fnm env`"
+    autoload -U compinit; compinit
+}
+my_lazyload_add_command fnm
