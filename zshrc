@@ -106,22 +106,26 @@ export LC_ALL=en_US.UTF-8
 # ===================== path add ====================================
 
 # local bin {
-    export PATH=$PATH:$HOME/.local/bin
+    export PATH=$HOME/.local/bin:$PATH
 # }
 
 # golang {
     export GOROOT=/usr/local/go
-    export PATH=$PATH:$GOROOT/bin
+    export PATH=$GOROOT/bin:$PATH
     export GOPATH=$HOME/Env/go
-    export PATH=$PATH:$GOPATH/bin
+    export PATH=$GOPATH/bin:$PATH
 # }
 
 # rust {
-    export PATH=$PATH:$HOME/.cargo/bin
+    export PATH=$HOME/.cargo/bin:$PATH
 # }
 
 # fd {
-    export PATH=$PATH:/usr/local/fd
+    export PATH=/usr/local/fd:$PATH
+# }
+
+# python {
+    #export PATH=$HOME/Library/Python/3.9/bin:$PATH
 # }
 
 # ===================== lazyload assets ====================================
@@ -150,8 +154,9 @@ alias tp=telepresence
 alias cg=codegpt
 alias vim=nvim
 alias vi=nvim
-alias open=xdg-open
-alias fastapi=fastapi_template
+if [[ $(uname) == "Linux" ]]; then
+    alias open=xdg-open
+fi
 export NVIM=/usr/local/nvim
 export PATH=$NVIM/bin:$PATH
 
