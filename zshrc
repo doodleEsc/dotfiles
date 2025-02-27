@@ -185,7 +185,7 @@ zsh-defer _evalcache zoxide init --cmd j zsh
 
 # fnm load
 export PATH="$HOME/.local/share/fnm:$PATH"
-zsh-defer _evalcache "$(fnm env)"
+zsh-defer eval "$(fnm env)"
 
 # pyenv load
 export PYENV_ROOT="$HOME/.pyenv"

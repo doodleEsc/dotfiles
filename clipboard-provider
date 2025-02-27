@@ -3,76 +3,85 @@
 #
 # :help provider-clipboard
 
-: ${COPY_PROVIDERS:=osc52 pb xclip win32yank tmux local}
-: ${PASTE_PROVIDERS:=pb xclip win32yank tmux local}
+: ${COPY_PROVIDERS:=osc52 pb wl xclip win32yank tmux local}
+: ${PASTE_PROVIDERS:=pb wl xclip win32yank tmux local}
 : ${TTY:=$( (tty || tmux display-message -p '#{pane_tty}') 2>/dev/null | grep /dev/)}
 
 LOCAL_STORAGE=$HOME/.clipboard-provider.out
 
 main() {
-        case $1 in
-        copy)
-                buffer=$(base64 | tr -d '\n')
-                for p in $COPY_PROVIDERS; do
-                        $p-provider copy
-                done
-                ;;
-        paste)
-                for p in $PASTE_PROVIDERS; do
-                        if $p-provider paste; then
-                                exit 0
-                        fi
-                done
-                ;;
-        esac
-        exit 1
+	declare buffer status=1
+	case $1 in
+	copy)
+		buffer=$(base64 | tr -d '\n')
+		for p in $COPY_PROVIDERS; do
+			internal | $p-provider copy && status=0
+		done
+		;;
+	paste)
+		for p in $PASTE_PROVIDERS; do
+			$p-provider paste && status=0 && break
+		done
+		;;
+	esac
+	exit $status
 }
 
+internal() { base64 --decode <<<"$buffer"; }
+
 tmux-provider() {
-        [[ -n $TMUX ]] || return 1
-        case $1 in
-        copy) base64 --decode <<<"$buffer" | tmux load-buffer - ;;
-        paste) tmux save-buffer - ;;
-        esac
+	[[ -n $TMUX ]] || return 1
+	case $1 in
+	copy) internal | tmux load-buffer - ;;
+	paste) tmux save-buffer - ;;
+	esac
 }
 
 pb-provider() {
-        command -v pbcopy &>/dev/null || return 1
-        case $1 in
-        copy) base64 --decode <<<"$buffer" | pbcopy ;;
-        paste) pbpaste ;;
-        esac
+	command -v pbcopy &>/dev/null || return 1
+	case $1 in
+	copy) internal | pbcopy ;;
+	paste) pbpaste ;;
+	esac
 }
 
 osc52-provider() {
-        [[ -n "$TTY" ]] || return 1
-        case $1 in
-        copy) printf $'\e]52;c;%s\a' "$buffer" >"$TTY" ;;
-        paste) return 1 ;;
-        esac
+	[[ -n "$TTY" ]] || return 1
+	case $1 in
+	copy) printf $'\e]52;c;%s\a' "$buffer" >"$TTY" ;;
+	paste) return 1 ;;
+	esac
 }
 
 local-provider() {
-        case $1 in
-        copy) base64 --decode <<<"$buffer" >$LOCAL_STORAGE ;;
-        paste) cat $LOCAL_STORAGE ;;
-        esac
+	case $1 in
+	copy) internal >$LOCAL_STORAGE ;;
+	paste) cat $LOCAL_STORAGE && return 0 ;;
+	esac
 }
 
 xclip-provider() {
-        [[ -n $DISPLAY ]] && command -v xclip &>/dev/null || return 1
-        case $1 in
-        copy) base64 --decode <<<"$buffer" | xclip -i -selection clipboard ;;
-        paste) xclip -o -selection clipboard ;;
-        esac
+	command -v xclip &>/dev/null || return 1
+	case $1 in
+	copy) internal | xclip -i -selection clipboard ;;
+	paste) xclip -o -selection clipboard ;;
+	esac
+}
+
+wl-provider() {
+	command -v wl-copy &>/dev/null || return 1
+	case $1 in
+	copy) internal | wl-copy ;;
+	paste) wl-paste ;;
+	esac
 }
 
 win32yank-provider() {
-        command -v win32yank.exe &>/dev/null || return 1
-        case $1 in
-        copy) base64 --decode <<<"$buffer" | win32yank.exe -i --crlf ;;
-        paste) win32yank.exe -o --lf ;;
-        esac
+	command -v win32yank.exe &>/dev/null || return 1
+	case $1 in
+	copy) internal | win32yank.exe -i --crlf ;;
+	paste) win32yank.exe -o --lf ;;
+	esac
 }
 
 main "$@"
