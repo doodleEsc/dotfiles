@@ -6,14 +6,28 @@
 : ${COPY_PROVIDERS:=osc52 pb wl xclip win32yank tmux local}
 : ${PASTE_PROVIDERS:=pb wl xclip win32yank tmux local}
 : ${TTY:=$( (tty || tmux display-message -p '#{pane_tty}') 2>/dev/null | grep /dev/)}
-
 LOCAL_STORAGE=$HOME/.clipboard-provider.out
+
+# 检测 base64 参数兼容性
+detect_base64() {
+	if base64 --help 2>&1 | grep -q -- '-w'; then
+		BASE64_ENCODE="base64 -w 0"
+		BASE64_DECODE="base64 -d"
+	elif base64 --help 2>&1 | grep -q -- '-b'; then
+		BASE64_ENCODE="base64 -b 0"
+		BASE64_DECODE="base64 -D"
+	else
+		BASE64_ENCODE="base64"
+		BASE64_DECODE="base64 -d"
+	fi
+}
+detect_base64
 
 main() {
 	declare buffer status=1
 	case $1 in
 	copy)
-		buffer=$(base64 | tr -d '\n')
+		buffer=$($BASE64_ENCODE | tr -d '\n')
 		for p in $COPY_PROVIDERS; do
 			internal | $p-provider copy && status=0
 		done
@@ -27,7 +41,7 @@ main() {
 	exit $status
 }
 
-internal() { base64 --decode <<<"$buffer"; }
+internal() { $BASE64_DECODE <<<"$buffer"; }
 
 tmux-provider() {
 	[[ -n $TMUX ]] || return 1
