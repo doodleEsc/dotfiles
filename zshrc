@@ -190,11 +190,11 @@ zsh-defer eval "$(fnm env)"
 # pyenv load
 export PYENV_ROOT="$HOME/.pyenv"
 [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
-zsh-defer _evalcache "$(pyenv init -)"
+zsh-defer eval "$(pyenv init -)"
 
 # java load
 export SDKMAN_DIR="$HOME/.sdkman"
-[[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && zsh-defer _evalcache  source "$HOME/.sdkman/bin/sdkman-init.sh"
+[[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && zsh-defer source "$HOME/.sdkman/bin/sdkman-init.sh"
 
 # idea
 export IDEA_HOME="/usr/local/idea"
