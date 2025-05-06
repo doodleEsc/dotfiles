@@ -7,8 +7,9 @@
 # -----------------
 # Debug
 # -----------------
-#zmodload zsh/zprof
-
+if [[ "$PROFILE_STARTUP" == true ]]; then
+  zmodload zsh/zprof
+fi
 
 # -----------------
 # Zsh configuration
@@ -52,8 +53,8 @@ WORDCHARS=${WORDCHARS//[\/]}
 # git
 #
 
-# Set a custom prefix for the generated aliases. The default prefix is 'G'.
-#zstyle ':zim:git' aliases-prefix 'g'
+# Set a custom prefix for the generated zsh-defer aliases. The default prefix is 'G'.
+#zstyle ':zim:git' zsh-defer aliases-prefix 'g'
 
 #
 # input
@@ -89,7 +90,7 @@ ZSH_AUTOSUGGEST_MANUAL_REBIND=1
 
 # Set what highlighters will be used.
 # See https://github.com/zsh-users/zsh-syntax-highlighting/blob/master/docs/highlighters.md
-ZSH_HIGHLIGHT_HIGHLIGHTERS=(main brackets)
+# ZSH_HIGHLIGHT_HIGHLIGHTERS=(main)
 
 # Customize the main highlighter styles.
 # See https://github.com/zsh-users/zsh-syntax-highlighting/blob/master/docs/highlighters/main.md#how-to-tweak-it
@@ -116,7 +117,7 @@ fi
 source ${ZIM_HOME}/modules/zsh-defer/zsh-defer.plugin.zsh
 
 # setup default python
-export AUTOSWITCH_DEFAULT_PYTHON=/usr/bin/python3
+# export AUTOSWITCH_DEFAULT_PYTHON=/usr/bin/python3
 
 # Install missing modules, and update ${ZIM_HOME}/init.zsh if missing or outdated.
 if [[ ! ${ZIM_HOME}/init.zsh -nt ${ZIM_CONFIG_FILE:-${ZDOTDIR:-${HOME}}/.zimrc} ]]; then
@@ -151,53 +152,91 @@ zsh-defer bindkey '^ ' autosuggest-execute
 # Binary Load
 # ------------------
 
-# local bin
-export PATH=$HOME/.local/bin:$PATH
-# golang
+export NVIM=/usr/local/nvim
+export FD=/usr/local/fd
+export PYENV_ROOT=$HOME/.pyenv
 export GOROOT=/usr/local/go
-export PATH=$GOROOT/bin:$PATH
 export GOPATH=$HOME/Env/go
-export PATH=$GOPATH/bin:$PATH
-# rust
-export PATH=$HOME/.cargo/bin:$PATH
-# fd
-export PATH=/usr/local/fd:$PATH
+
+path=(
+  $HOME/.local/bin
+  $PYENV_ROOT/bin
+  $GOROOT/bin
+  $GOPATH/bin
+  $HOME/.cargo/bin
+  $FD
+  $NVIM/bin
+  $path
+)
+export PATH
+
 
 # ------------------
 # Alias
 # ------------------
-export NVIM=/usr/local/nvim
-export PATH=$NVIM/bin:$PATH
-alias tp=telepresence
-alias cg=codegpt
-alias vim=nvim
-alias vi=nvim
+zsh-defer alias tp=telepresence
+zsh-defer alias cg=codegpt
+zsh-defer alias vim=nvim
+zsh-defer alias vi=nvim
 if [[ $(uname) == "Linux" ]]; then
-    alias open=xdg-open
+    zsh-defer alias open=xdg-open
 fi
+
 
 # ------------------
 # My Custom Config
 # ------------------
 
-# zoxide
-zsh-defer _evalcache zoxide init --cmd j zsh
+# zoxide load
+if [[ -f ~/.zoxide_init.zsh ]]; then
+  # 静态配置文件存在，直接加载
+  zsh-defer source ~/.zoxide_init.zsh
+else
+  # 静态配置不存在，动态生成
+  if (( $+commands[zoxide] )); then
+    zoxide init --cmd j zsh > ~/.zoxide_init.zsh
+    zsh-defer source ~/.zoxide_init.zsh
+  fi
+fi
+
 
 # fnm load
-export PATH="$HOME/.local/share/fnm:$PATH"
-zsh-defer eval "$(fnm env)"
+if [[ -f ~/.fnm_env ]]; then
+  # 静态配置文件存在，直接加载
+  zsh-defer source ~/.fnm_env
+else
+  # 静态配置不存在，动态生成
+  if (( $+commands[fnm] )); then
+    # 确保 fnm 命令存在
+    fnm env > ~/.fnm_env
+    zsh-defer source ~/.fnm_env
+  fi
+fi
 
 # pyenv load
-export PYENV_ROOT="$HOME/.pyenv"
 [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
-zsh-defer eval "$(pyenv init -)"
+
+if [[ -f ~/.pyenv_init ]]; then
+  # 静态配置文件存在，直接加载
+  zsh-defer source ~/.pyenv_init
+else
+  # 静态配置不存在，动态生成并保存
+  if (( $+commands[pyenv] )); then
+    # 将 pyenv init - 的输出写入文件
+    pyenv init - > ~/.pyenv_init
+    # 立即加载新生成的配置
+    source ~/.pyenv_init
+  fi
+fi
 
 # java load
 export SDKMAN_DIR="$HOME/.sdkman"
 [[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && zsh-defer source "$HOME/.sdkman/bin/sdkman-init.sh"
 
 # idea
-export IDEA_HOME="/usr/local/idea"
-export PATH="$PATH:$IDEA_HOME/bin"
+#export IDEA_HOME="/usr/local/idea"
+#export PATH="$PATH:$IDEA_HOME/bin"
 
-#zprof
+if [[ "$PROFILE_STARTUP" == true ]]; then
+  zprof
+fi
