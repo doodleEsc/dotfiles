@@ -152,7 +152,6 @@ zsh-defer bindkey '^ ' autosuggest-execute
 # Binary Load
 # ------------------
 
-export NVIM=/usr/local/nvim
 export FD=/usr/local/fd
 export PYENV_ROOT=$HOME/.pyenv
 export GOROOT=/usr/local/go
@@ -165,7 +164,6 @@ path=(
   $GOPATH/bin
   $HOME/.cargo/bin
   $FD
-  $NVIM/bin
   $path
 )
 export PATH
