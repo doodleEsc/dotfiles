@@ -97,6 +97,11 @@ ZSH_AUTOSUGGEST_MANUAL_REBIND=1
 #typeset -A ZSH_HIGHLIGHT_STYLES
 #ZSH_HIGHLIGHT_STYLES[comment]='fg=242'
 
+#
+# autoswitch_virtualenv
+#
+AUTOSWITCH_DEFAULT_PYTHON=python3
+
 # ------------------
 # Initialize modules
 # ------------------
