@@ -232,6 +232,18 @@ else
   fi
 fi
 
+# vfox load
+if [[ -f ~/.vfox_init.zsh ]]; then
+  # 静态配置文件存在，直接加载
+  zsh-defer source ~/.vfox_init.zsh
+else
+  # 静态配置不存在，动态生成
+  if (( $+commands[vfox] )); then
+    vfox activate zsh > ~/.vfox_init.zsh
+    zsh-defer source ~/.vfox_init.zsh
+  fi
+fi
+
 # java load
 export SDKMAN_DIR="$HOME/.sdkman"
 [[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && zsh-defer source "$HOME/.sdkman/bin/sdkman-init.sh"
