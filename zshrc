@@ -157,18 +157,11 @@ zsh-defer bindkey '^ ' autosuggest-execute
 # Binary Load
 # ------------------
 
-export FD=/usr/local/fd
-export PYENV_ROOT=$HOME/.pyenv
-export GOROOT=/usr/local/go
-export GOPATH=$HOME/Env/go
+export MASON=$HOME/.local/share/nvim/mason
 
 path=(
+  $MASON/bin
   $HOME/.local/bin
-  $PYENV_ROOT/bin
-  $GOROOT/bin
-  $GOPATH/bin
-  $HOME/.cargo/bin
-  $FD
   $path
 )
 export PATH
@@ -177,8 +170,6 @@ export PATH
 # ------------------
 # Alias
 # ------------------
-zsh-defer alias tp=telepresence
-zsh-defer alias cg=codegpt
 zsh-defer alias vim=nvim
 zsh-defer alias vi=nvim
 if [[ $(uname) == "Linux" ]]; then
@@ -202,55 +193,12 @@ else
   fi
 fi
 
-
-# fnm load
-if [[ -f ~/.fnm_env ]]; then
-  # 静态配置文件存在，直接加载
-  zsh-defer source ~/.fnm_env
-else
-  # 静态配置不存在，动态生成
-  if (( $+commands[fnm] )); then
-    # 确保 fnm 命令存在
-    fnm env > ~/.fnm_env
-    zsh-defer source ~/.fnm_env
-  fi
-fi
-
-# pyenv load
-[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
-
-if [[ -f ~/.pyenv_init ]]; then
-  # 静态配置文件存在，直接加载
-  zsh-defer source ~/.pyenv_init
-else
-  # 静态配置不存在，动态生成并保存
-  if (( $+commands[pyenv] )); then
-    # 将 pyenv init - 的输出写入文件
-    pyenv init - > ~/.pyenv_init
-    # 立即加载新生成的配置
-    source ~/.pyenv_init
-  fi
-fi
-
 # vfox load
-if [[ -f ~/.vfox_init.zsh ]]; then
-  # 静态配置文件存在，直接加载
-  zsh-defer source ~/.vfox_init.zsh
-else
-  # 静态配置不存在，动态生成
-  if (( $+commands[vfox] )); then
-    vfox activate zsh > ~/.vfox_init.zsh
-    zsh-defer source ~/.vfox_init.zsh
-  fi
-fi
+zsh-defer eval "$(vfox activate zsh)"
 
 # java load
 export SDKMAN_DIR="$HOME/.sdkman"
 [[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && zsh-defer source "$HOME/.sdkman/bin/sdkman-init.sh"
-
-# idea
-#export IDEA_HOME="/usr/local/idea"
-#export PATH="$PATH:$IDEA_HOME/bin"
 
 if [[ "$PROFILE_STARTUP" == true ]]; then
   zprof
