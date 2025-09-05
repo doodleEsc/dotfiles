@@ -157,10 +157,7 @@ zsh-defer bindkey '^ ' autosuggest-execute
 # Binary Load
 # ------------------
 
-export MASON=$HOME/.local/share/nvim/mason
-
 path=(
-  $MASON/bin
   $HOME/.local/bin
   $path
 )
